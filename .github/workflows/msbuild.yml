@@ -1,0 +1,51 @@
+name: Build and Release
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    tags:
+      - 'v*'
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Restore NuGet packages
+        run: nuget restore msi_search.sln
+
+      - name: Build Solution
+        run: msbuild msi_search.sln /p:Configuration=Release /p:Platform=x86
+
+      - name: Collect .exe files
+        run: |
+          mkdir -p release_artifacts
+          $exeFiles = Get-ChildItem -Path . -Filter "*.exe" -Recurse | Where-Object { $_.FullName -notmatch '\\packages\\' }
+          foreach ($file in $exeFiles) {
+            Copy-Item -Path $file.FullName -Destination release_artifacts/
+          }
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: executable-files
+          path: release_artifacts/
+
+      - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v1
+        with:
+          files: release_artifacts/*.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
