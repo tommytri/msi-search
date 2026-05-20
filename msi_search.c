@@ -25,13 +25,13 @@ DECLSPEC_IMPORT UINT WINAPI MSI$MsiViewExecute(MSIHANDLE, MSIHANDLE);
 DECLSPEC_IMPORT UINT WINAPI MSI$MsiViewFetch(MSIHANDLE, MSIHANDLE*);
 DECLSPEC_IMPORT UINT WINAPI MSI$MsiCloseHandle(MSIHANDLE);
 DECLSPEC_IMPORT UINT WINAPI MSI$MsiRecordGetStringA(MSIHANDLE, unsigned int, LPSTR, unsigned int*);
-WINBASEAPI HANDLE WINAPI KERNEL32$FindFirstFileA(LPCSTR, LPWIN32_FIND_DATAA);
-WINBASEAPI HANDLE WINAPI KERNEL32$FindNextFileA(LPCSTR, LPWIN32_FIND_DATAA);
-WINBASEAPI WINBOOL WINAPI KERNEL32$FindClose(HANDLE hFindFile);
+WINBASEAPI HANDLE WINAPI KERNEL32$FindFirstFileA(LPCSTR lpFileName, LPWIN32_FIND_DATAA lpFindFileData);
+WINBASEAPI BOOL WINAPI KERNEL32$FindNextFileA(HANDLE hFindFile, LPWIN32_FIND_DATAA lpFindFileData);
+WINBASEAPI BOOL WINAPI KERNEL32$FindClose(HANDLE hFindFile);
 WINBASEAPI int __cdecl MSVCRT$sprintf(char *__stream, const char *__format, ...);
 
 void go(int argc, char* argv[]) {
-    WIN32_FIND_DATA fileData;
+    WIN32_FIND_DATAA fileData;
     HANDLE hFind;
     char searchPath[MAX_PATH];
     MSVCRT$sprintf(searchPath, "%s\\*.msi", "C:\\Windows\\Installer");
@@ -55,7 +55,7 @@ void go(int argc, char* argv[]) {
 		MSIHANDLE hRecord = NULL;
 		
                 if (MSI$MsiDatabaseOpenViewA(hDatabase, "SELECT `Value` FROM `Property` WHERE `Property`='Manufacturer'", &hView) == ERROR_SUCCESS) {
-                    if (MSI$MsiViewExecute(hView, NULL) == ERROR_SUCCESS) {
+                    if (MSI$MsiViewExecute(hView, 0) == ERROR_SUCCESS) {
                         if (MSI$MsiViewFetch(hView, &hRecord) == ERROR_SUCCESS) {
                             char manufacturer[256];
                             DWORD manufacturerLen = sizeof(manufacturer);
@@ -69,7 +69,7 @@ void go(int argc, char* argv[]) {
                 }
 
                 if (MSI$MsiDatabaseOpenViewA(hDatabase, "SELECT `Value` FROM `Property` WHERE `Property`='ProductName'", &hView) == ERROR_SUCCESS) {
-                    if (MSI$MsiViewExecute(hView, NULL) == ERROR_SUCCESS) {
+                    if (MSI$MsiViewExecute(hView, 0) == ERROR_SUCCESS) {
                         if (MSI$MsiViewFetch(hView, &hRecord) == ERROR_SUCCESS) {
                             char productName[MAX_PATH];
                             DWORD productNameLen = sizeof(productName);
@@ -83,7 +83,7 @@ void go(int argc, char* argv[]) {
                 }
 
                 if (MSI$MsiDatabaseOpenViewA(hDatabase, "SELECT `Value` FROM `Property` WHERE `Property`='ProductVersion'", &hView) == ERROR_SUCCESS) {
-                    if (MSI$MsiViewExecute(hView, NULL) == ERROR_SUCCESS) {
+                    if (MSI$MsiViewExecute(hView, 0) == ERROR_SUCCESS) {
                         if (MSI$MsiViewFetch(hView, &hRecord) == ERROR_SUCCESS) {
                             char productVersion[33];
                             DWORD productVersionLen = sizeof(productVersion);
@@ -101,4 +101,3 @@ void go(int argc, char* argv[]) {
         KERNEL32$FindClose(hFind);
     }
 }
-
